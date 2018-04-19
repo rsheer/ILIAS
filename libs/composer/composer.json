@@ -25,7 +25,8 @@
 		"simplesamlphp/simplesamlphp": "^1.15.4",
 		"ralouphie/getallheaders": "^2.0",
 		"league/flysystem": "^1.0",
-		"james-heinrich/getid3": "^1.9"
+		"james-heinrich/getid3": "^1.9",
+		"sabre/dav": "^3.2.2"
 	},
 	"require-dev": {
 		"mikey179/vfsStream": "^1.6",
@@ -282,6 +283,14 @@
 			"simplesamlphp/simplesamlphp": {
 				"ILIAS SimpleSAMLphp Patches": "patches/simplesamlphp.patch"
 			}
-		}
+		},
+		"sabre/dav": {
+	        "source" : "https://github.com/sabre-io/dav.git",
+            "used_version" : "v3.2.2",
+            "wrapped_by" : "Services/WebDAV",
+            "added_by" : "Raphael Heer <raphael.heer@hslu.ch>",
+            "last_update" : "2018-03-12",
+            "last_update_by" : "Raphael Heer <raphael.heer@hslu.ch>"
+        }
 	}
 }
