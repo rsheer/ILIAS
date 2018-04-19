@@ -154,7 +154,7 @@ class ilObjFileAccessSettings extends ilObject
 		if (strlen($this->customWebfolderInstructions) == 0) 
 		{
 			require_once 'Services/WebDAV/classes/class.ilDAVServer.php';
-			$this->customWebfolderInstructions = ilDAVServer::_getDefaultWebfolderInstructions();
+			$this->customWebfolderInstructions = self::_getDefaultWebfolderInstructions();
 		}
 		return $this->customWebfolderInstructions;
 	}
@@ -166,7 +166,7 @@ class ilObjFileAccessSettings extends ilObject
 	*/
 	public function getDefaultWebfolderInstructions()
 	{
-		return ilDAVServer::_getDefaultWebfolderInstructions();
+		return self::_getDefaultWebfolderInstructions();
 	}
 	/**
 	* Gets the customWebfolderInstructionsEnabled property.
@@ -305,7 +305,139 @@ class ilObjFileAccessSettings extends ilObject
 		$this->customWebfolderInstructions = $settings->get('custom_webfolder_instructions', '');
 	}
 
-
+	/**
+	 * Gets instructions for the usage of webfolders.
+	 *
+	 * The instructions consist of HTML text with placeholders.
+	 * See _getWebfolderInstructionsFor for a description of the supported
+	 * placeholders.
+	 *
+	 * @return String HTML text with placeholders.
+	 */
+	public static function _getDefaultWebfolderInstructions()
+	{
+	    global $lng;
+	    return $lng->txt('webfolder_instructions_text');
+	}
+	
+	/**
+	 * Gets Webfolder mount instructions for the specified webfolder.
+	 *
+	 *
+	 * The following placeholders are currently supported:
+	 *
+	 * [WEBFOLDER_TITLE] - the title of the webfolder
+	 * [WEBFOLDER_URI] - the URL for mounting the webfolder with standard
+	 *                   compliant WebDAV clients
+	 * [WEBFOLDER_URI_IE] - the URL for mounting the webfolder with Internet Explorer
+	 * [WEBFOLDER_URI_KONQUEROR] - the URL for mounting the webfolder with Konqueror
+	 * [WEBFOLDER_URI_NAUTILUS] - the URL for mounting the webfolder with Nautilus
+	 * [IF_WINDOWS]...[/IF_WINDOWS] - conditional contents, with instructions for Windows
+	 * [IF_MAC]...[/IF_MAC] - conditional contents, with instructions for Mac OS X
+	 * [IF_LINUX]...[/IF_LINUX] - conditional contents, with instructions for Linux
+	 * [ADMIN_MAIL] - the mailbox address of the system administrator
+	 
+	 * @param String Title of the webfolder
+	 * @param String Mount URI of the webfolder for standards compliant WebDAV clients
+	 * @param String Mount URI of the webfolder for IE
+	 * @param String Mount URI of the webfolder for Konqueror
+	 * @param String Mount URI of the webfolder for Nautilus
+	 * @param String Operating system: 'windows', 'unix' or 'unknown'.
+	 * @param String Operating system flavor: 'xp', 'vista', 'osx', 'linux' or 'unknown'.
+	 * @return String HTML text.
+	 */
+	public static function _getWebfolderInstructionsFor($webfolderTitle,
+	    $webfolderURI, $webfolderURI_IE, $webfolderURI_Konqueror, $webfolderURI_Nautilus,
+	    $os = 'unknown', $osFlavor = 'unknown')
+	{
+	    global $ilSetting;
+	    
+	    $settings = new ilSetting('file_access');
+	    $str = $settings->get('custom_webfolder_instructions', '');
+	    if (strlen($str) == 0 || ! $settings->get('custom_webfolder_instructions_enabled'))
+	    {
+	        $str = self::_getDefaultWebfolderInstructions();
+	    }
+	    if(is_file('Customizing/clients/'.CLIENT_ID.'/webdavtemplate.htm')){
+	        $str = fread(fopen('Customizing/clients/'.CLIENT_ID.'/webdavtemplate.htm', "rb"),filesize('Customizing/clients/'.CLIENT_ID.'/webdavtemplate.htm'));
+	    }
+	    $str=utf8_encode($str);
+	    
+	    preg_match_all('/(\\d+)/', $webfolderURI, $matches);
+	    $refID=end($matches[0]);
+	    
+	    $str = str_replace("[WEBFOLDER_ID]", $refID, $str);
+	    $str = str_replace("[WEBFOLDER_TITLE]", $webfolderTitle, $str);
+	    $str = str_replace("[WEBFOLDER_URI]", $webfolderURI, $str);
+	    $str = str_replace("[WEBFOLDER_URI_IE]", $webfolderURI_IE, $str);
+	    $str = str_replace("[WEBFOLDER_URI_KONQUEROR]", $webfolderURI_Konqueror, $str);
+	    $str = str_replace("[WEBFOLDER_URI_NAUTILUS]", $webfolderURI_Nautilus, $str);
+	    $str = str_replace("[ADMIN_MAIL]", $ilSetting->get("admin_email"), $str);
+	    
+	    if(strpos($_SERVER['HTTP_USER_AGENT'],'MSIE')!==false){
+	        $str = preg_replace('/\[IF_IEXPLORE\](?:(.*))\[\/IF_IEXPLORE\]/s','\1', $str);
+	    }else{
+	        $str = preg_replace('/\[IF_NOTIEXPLORE\](?:(.*))\[\/IF_NOTIEXPLORE\]/s','\1', $str);
+	    }
+	    
+	    switch ($os)
+	    {
+	        case 'windows' :
+	            $operatingSystem = 'WINDOWS';
+	            break;
+	        case 'unix' :
+	            switch ($osFlavor)
+	            {
+	                case 'osx' :
+	                    $operatingSystem = 'MAC';
+	                    break;
+	                case 'linux' :
+	                    $operatingSystem = 'LINUX';
+	                    break;
+	                default :
+	                    $operatingSystem = 'LINUX';
+	                    break;
+	            }
+	            break;
+	        default :
+	            $operatingSystem = 'UNKNOWN';
+	            break;
+	    }
+	    
+	    if ($operatingSystem != 'UNKNOWN')
+	    {
+	        $str = preg_replace('/\[IF_'.$operatingSystem.'\](?:(.*))\[\/IF_'.$operatingSystem.'\]/s','\1', $str);
+	        $str = preg_replace('/\[IF_([A-Z_]+)\](?:(.*))\[\/IF_\1\]/s','', $str);
+	    }
+	    else
+	    {
+	        $str = preg_replace('/\[IF_([A-Z_]+)\](?:(.*))\[\/IF_\1\]/s','\2', $str);
+	    }
+	    return $str;
+	}
+	
+	/**
+	 * Gets the maximum permitted upload filesize from php.ini in bytes.
+	 *
+	 * @return int Upload Max Filesize in bytes.
+	 */
+	private function getUploadMaxFilesize() {
+	    $val = ini_get('upload_max_filesize');
+	    
+	    $val = trim($val);
+	    $last = strtolower($val[strlen($val)-1]);
+	    switch($last) {
+	        // The 'G' modifier is available since PHP 5.1.0
+	        case 'g':
+	            $val *= 1024;
+	        case 'm':
+	            $val *= 1024;
+	        case 'k':
+	            $val *= 1024;
+	    }
+	    
+	    return $val;
+	}
 
 } // END class.ilObjFileAccessSettings
 // END WebDAV

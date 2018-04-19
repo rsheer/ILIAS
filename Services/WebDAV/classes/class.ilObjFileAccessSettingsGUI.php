@@ -58,7 +58,7 @@ class ilObjFileAccessSettingsGUI extends ilObjectGUI {
 		$this->folderSettings = new ilSetting('fold');
 
 		// Load the disk quota settings object
-		require_once 'Services/WebDAV/classes/class.ilObjDiskQuotaSettings.php';
+		require_once 'Services/WebDAV/classes/diskquota/class.ilObjDiskQuotaSettings.php';
 		$this->disk_quota_obj = new ilObjDiskQuotaSettings($a_id, $a_call_by_reference);
 		$this->disk_quota_obj->read();
 	}
@@ -324,14 +324,12 @@ class ilObjFileAccessSettingsGUI extends ilObjectGUI {
 		require_once("./Services/Form/classes/class.ilRadioGroupInputGUI.php");
 		require_once("./Services/Form/classes/class.ilRadioOption.php");
 		require_once("./Services/Form/classes/class.ilTextAreaInputGUI.php");
-		require_once("./Services/WebDAV/classes/class.ilDAVServer.php");
 
 		$form = new ilPropertyFormGUI();
 		$form->setFormAction($ilCtrl->getFormAction($this));
 		$form->setTitle($lng->txt("settings"));
 
 		// Enable webdav
-		$ilDAVServer = ilDAVServer::getInstance();
 		$cb_prop = new ilCheckboxInputGUI($lng->txt("enable_webdav"), "enable_webdav");
 		$cb_prop->setValue('1');
 		$cb_prop->setChecked($this->object->isWebdavEnabled());
@@ -405,7 +403,7 @@ class ilObjFileAccessSettingsGUI extends ilObjectGUI {
 
 		$ilTabs->addSubTabTarget("settings", $ilCtrl->getLinkTarget($this, "editDiskQuotaSettings"), array("editDiskQuotaSettings"));
 
-		require_once 'Services/WebDAV/classes/class.ilDiskQuotaActivationChecker.php';
+		require_once 'Services/WebDAV/classes/diskquota/class.ilDiskQuotaActivationChecker.php';
 		if (ilDiskQuotaActivationChecker::_isActive()) {
 			$ilTabs->addSubTabTarget("disk_quota_report", $ilCtrl->getLinkTarget($this, "viewDiskQuotaReport"), array("viewDiskQuotaReport"));
 		}
@@ -441,7 +439,6 @@ class ilObjFileAccessSettingsGUI extends ilObjectGUI {
 		require_once("./Services/Form/classes/class.ilRadioGroupInputGUI.php");
 		require_once("./Services/Form/classes/class.ilRadioOption.php");
 		require_once("./Services/Form/classes/class.ilTextAreaInputGUI.php");
-		require_once("./Services/WebDAV/classes/class.ilDAVServer.php");
 
 		$lng->loadLanguageModule("file");
 
@@ -500,7 +497,7 @@ class ilObjFileAccessSettingsGUI extends ilObjectGUI {
 		$this->addDiskQuotaSubtabs('disk_quota_report');
 
 		// nothing to do if disk quota is not active
-		require_once 'Services/WebDAV/classes/class.ilDiskQuotaActivationChecker.php';
+		require_once 'Services/WebDAV/classes/diskquota/class.ilDiskQuotaActivationChecker.php';
 		if (!ilDiskQuotaActivationChecker::_isActive()) {
 			return;
 		}
@@ -509,7 +506,7 @@ class ilObjFileAccessSettingsGUI extends ilObjectGUI {
 		$this->tpl->addBlockfile('ADM_CONTENT', 'adm_content', 'tpl.disk_quota_report.html', "Services/WebDAV");
 
 		// get the date of the last update
-		require_once("./Services/WebDAV/classes/class.ilDiskQuotaChecker.php");
+		require_once("./Services/WebDAV/classes/diskquota/class.ilDiskQuotaChecker.php");
 		$last_update = ilDiskQuotaChecker::_lookupDiskUsageReportLastUpdate();
 		if ($last_update == null) {
 			// nothing to do if disk usage report has not been run
