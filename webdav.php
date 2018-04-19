@@ -1,6 +1,4 @@
 <?php
-
-// BEGIN WebDAV
 /* Copyright (c) 1998-2009 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 /**
@@ -35,7 +33,7 @@ ilAuthFactory::setContext(ilAuthFactory::CONTEXT_HTTP);
 
 // Launch ILIAS using the client id we have determined
 // -----------------------------------------------------
-$_COOKIE["ilClientId"] = $client_id;
+// $_COOKIE["ilClientId"] = $client_id;
 
 include_once "Services/Context/classes/class.ilContext.php";
 ilContext::init(ilContext::CONTEXT_WEBDAV);
@@ -45,8 +43,7 @@ ilInitialisation::initILIAS();
 
 // Launch the WebDAV Server
 // -----------------------------------------------------
-include_once "Services/WebDAV/classes/class.ilDAVServer.php";
-$server =  ilDAVServer::getInstance();
-$server->ServeRequest();
-// END WebDAV
+include_once "Services/WebDAVNew/classes/class.ilWebDAVRequestHandler.php";
+$server =  ilWebDAVRequestHandler::getInstance();
+$server->handleRequest();
 ?>
