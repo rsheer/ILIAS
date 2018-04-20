@@ -153,7 +153,6 @@ class ilObjFileAccessSettings extends ilObject
 	{
 		if (strlen($this->customWebfolderInstructions) == 0) 
 		{
-			require_once 'Services/WebDAV/classes/class.ilDAVServer.php';
 			$this->customWebfolderInstructions = self::_getDefaultWebfolderInstructions();
 		}
 		return $this->customWebfolderInstructions;
