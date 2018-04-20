@@ -383,17 +383,17 @@ class ilWebDAVUtil
      */
     public static function getFolderURI($refId, $nodeId = 0, $ressourceName = null, $parentRefId = null)
     {
-        if ($this->clientOS == 'windows') {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "https:" : "http:");
+        if (self::$clientOS == 'windows') {
+            $baseUri = "https:";
             $query = null;
-        } else if ($this->clientBrowser == 'konqueror') {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "webdavs:" : "webdav:");
+        } else if (self::$clientBrowser == 'konqueror') {
+            $baseUri = "webdavs:";
             $query = null;
-        } else if ($this->clientBrowser == 'nautilus') {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "davs:" : "dav:");
+        } else if (self::$clientBrowser == 'nautilus') {
+            $baseUri = "davs:";
             $query = null;
         } else {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "https:" : "http:");
+            $baseUri = "https:";
             $query = null;
         }
         $baseUri.= "//$_SERVER[HTTP_HOST]$_SERVER[SCRIPT_NAME]";
@@ -426,19 +426,19 @@ class ilWebDAVUtil
     public static function getMountURI($refId, $nodeId = 0, $ressourceName = null, $parentRefId = null, $genericURI = false)
     {
         if ($genericURI) {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "https:" : "http:");
+            $baseUri = "https:";
             $query = null;
-        } else if ($this->clientOS == 'windows') {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "https:" : "http:");
+        } else if (self::$clientOS == 'windows') {
+            $baseUri = "http:";
             $query = 'mount-instructions';
-        } else if ($this->clientBrowser == 'konqueror') {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "webdavs:" : "webdav:");
+        } else if (self::$clientBrowser == 'konqueror') {
+            $baseUri = "webdavs:";
             $query = null;
-        } else if ($this->clientBrowser == 'nautilus') {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "davs:" : "dav:");
+        } else if (self::$clientBrowser == 'nautilus') {
+            $baseUri = "davs:";
             $query = null;
         } else {
-            $baseUri = ($this->isWebDAVoverHTTPS() ? "https:" : "http:");
+            $baseUri = "https:";
             $query = 'mount-instructions';
         }
         $baseUri.= "//$_SERVER[HTTP_HOST]$_SERVER[SCRIPT_NAME]";
