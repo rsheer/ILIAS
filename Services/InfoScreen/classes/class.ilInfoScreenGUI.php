@@ -641,13 +641,13 @@ class ilInfoScreenGUI
 		{
 			if ($ilUser->getId() != ANONYMOUS_USER_ID)
 			{
-				require_once 'Services/WebDAV/classes/class.ilDAVServer.php';
-				$davLocks = new ilDAVLocks();
+				require_once 'Services/WebDAV/classes/lock/class.ilWebDAVLockBackend.php';
+				$webdav_lock_backend = new ilWebDAVLockBackend();
 
 				// Show lock info
 				if ($ilUser->getId() != ANONYMOUS_USER_ID)
 				{
-					$locks =& $davLocks->getLocksOnObjectObj($a_obj->getId());
+					$locks =& $webdav_lock_backend->getLocksOnObjectObj($a_obj->getId());
 					if (count($locks) > 0)
 					{
 						$lockUser = new ilObjUser($locks[0]['ilias_owner']);

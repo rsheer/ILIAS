@@ -1214,14 +1214,12 @@ class ilObjectListGUI
 			require_once ('Services/WebDAV/classes/class.ilDAVActivationChecker.php');
 			if (ilDAVActivationChecker::_isActive())
 			{
-				require_once ('Services/WebDAV/classes/class.ilDAVServer.php');
-
 				// Show lock info
-				require_once('Services/WebDAV/classes/class.ilDAVLocks.php');
-				$davLocks = new ilDAVLocks();
+				require_once('Services/WebDAV/classes/lock/class.ilDAVLockBackend.php');
+				$webdav_lock_backend = new ilWebDAVLockBackend();
 				if ($ilUser->getId() != ANONYMOUS_USER_ID)
 				{
-					$locks =& $davLocks->getLocksOnObjectObj($this->obj_id);
+					$locks =& $webdav_lock_backend->getLocksOnObjectObj($this->obj_id);
 					if (count($locks) > 0)
 					{
 						$lockUser = new ilObjUser($locks[0]['ilias_owner']);

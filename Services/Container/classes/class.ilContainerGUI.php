@@ -1462,6 +1462,9 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 	}
 	
 	// BEGIN WebDAV: Lock/Unlock objects
+	/** TODO: Change this function for new lock backend
+	 * It seems like no one is using this function anyway...
+	 */
 	function lockObject()
 	{
 		$tree = $this->tree;
@@ -1473,9 +1476,8 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 				$this->ilErr->raiseError($this->lng->txt('err_no_permission'),$this->ilErr->MESSAGE);
 		}
 
-
 		require_once ('Services/WebDAV/classes/class.ilDAVActivationChecker.php');
-		if (ilDAVActivationChecker::_isActive())
+		if (false && ilDAVActivationChecker::_isActive())
 		{
 			require_once 'Services/WebDAV/classes/class.ilDAVServer.php';
 			if (ilDAVServer::_isActionsVisible())
