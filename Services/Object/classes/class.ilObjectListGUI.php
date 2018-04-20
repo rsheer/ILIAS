@@ -1214,7 +1214,7 @@ class ilObjectListGUI
 			if (ilDAVActivationChecker::_isActive())
 			{
 				// Show lock info
-				require_once('Services/WebDAV/classes/lock/class.ilDAVLockBackend.php');
+				require_once('Services/WebDAV/classes/lock/class.ilWebDAVLockBackend.php');
 				$webdav_lock_backend = new ilWebDAVLockBackend();
 				if ($ilUser->getId() != ANONYMOUS_USER_ID)
 				{
