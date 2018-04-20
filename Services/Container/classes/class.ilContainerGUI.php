@@ -1479,8 +1479,8 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 		require_once ('Services/WebDAV/classes/class.ilDAVActivationChecker.php');
 		if (false && ilDAVActivationChecker::_isActive())
 		{
-			require_once 'Services/WebDAV/classes/class.ilDAVServer.php';
-			if (ilDAVServer::_isActionsVisible())
+			require_once 'Services/WebDAV/classes/class.ilWebDAVUtil.php';
+			if (ilWebDAVUtil::_isActionsVisible())
 			{
 				require_once 'Services/WebDAV/classes/class.ilDAVLocks.php';
 				$locks = new ilDAVLocks();
@@ -3320,14 +3320,13 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 			$this->initFormPasswordInstruction();
 		}
 		
-		include_once ('Services/WebDAV/classes/class.ilDAVServer.php');
-		$davServer = ilDAVServer::getInstance();
+		include_once ('Services/WebDAV/classes/class.ilWebDAVUtil.php');
 		$ilToolbar->addButton(
 			$this->lng->txt('mount_webfolder'),
-			$davServer->getMountURI($this->object->getRefId()),
+		    ilWebDAVUtil::getMountURI($this->object->getRefId()),
 			'_blank',
 			'',
-			$davServer->getFolderURI($this->object->getRefId())
+		    ilWebDAVUtil::getFolderURI($this->object->getRefId())
 		);
 
 		$tpl->setContent($this->form->getHTML());

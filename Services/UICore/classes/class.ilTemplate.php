@@ -2248,11 +2248,10 @@ class ilTemplate extends HTML_Template_ITX
 		// mount webfolder
 		if ($this->mount_webfolder != "")
 		{
-			require_once('Services/WebDAV/classes/class.ilDAVServer.php');
-			$davServer = ilDAVServer::getInstance();
+			require_once('Services/WebDAV/classes/class.ilWebdavUtil.php');
 			$a_ref_id = $this->mount_webfolder;
-			$a_link =  $davServer->getMountURI($a_ref_id);
-			$a_folder = $davServer->getFolderURI($a_ref_id);
+			$a_link =  ilWebDAVUtil::getMountURI($a_ref_id);
+			$a_folder = ilWebDAVUtil::getFolderURI($a_ref_id);
 			
 			$this->setCurrentBlock("mount_webfolder");
 			$this->setVariable("LINK_MOUNT_WEBFOLDER", $a_link);

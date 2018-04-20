@@ -10,6 +10,21 @@
  */
 class ilWebDAVUtil
 {    
+    protected static $clientBrowser = "firefox";
+    protected static $clientOS = "windows";
+    protected static $clientFlavor = "nichtxp";
+    
+    /**
+     * Static getter. Returns true, if WebDAV actions are visible for repository items.
+     *
+     * @return	boolean	value
+     */
+    public static function _isActionsVisible()
+    {
+        global $ilClientIniFile;
+        return $ilClientIniFile->readVariable('file_access','webdav_actions_visible') == '1';
+    }
+    
     /**
      * TODO: Check if needed and refactor
      * Mount instructions method handler for directories
@@ -366,7 +381,7 @@ class ilWebDAVUtil
      * @param ressourceName ressource name (if known), to reduce SQL queries
      * @param parentRefId refId of parent object (if known), to reduce SQL queries
      */
-    function getFolderURI($refId, $nodeId = 0, $ressourceName = null, $parentRefId = null)
+    public static function getFolderURI($refId, $nodeId = 0, $ressourceName = null, $parentRefId = null)
     {
         if ($this->clientOS == 'windows') {
             $baseUri = ($this->isWebDAVoverHTTPS() ? "https:" : "http:");
@@ -393,6 +408,8 @@ class ilWebDAVUtil
         return $uri;
     }
     
+
+    
     /**
      * TODO: Check if needed and refactor
      * Returns an URI for mounting the repository object as a webfolder.
@@ -406,7 +423,7 @@ class ilWebDAVUtil
      * @param genericURI boolean Returns a generic mount URI, which works on
      * all platforms which support WebDAV as in the IETF specification.
      */
-    function getMountURI($refId, $nodeId = 0, $ressourceName = null, $parentRefId = null, $genericURI = false)
+    public static function getMountURI($refId, $nodeId = 0, $ressourceName = null, $parentRefId = null, $genericURI = false)
     {
         if ($genericURI) {
             $baseUri = ($this->isWebDAVoverHTTPS() ? "https:" : "http:");
