@@ -43,7 +43,7 @@ ilInitialisation::initILIAS();
 
 // Launch the WebDAV Server
 // -----------------------------------------------------
-include_once "Services/WebDAVNew/classes/class.ilWebDAVRequestHandler.php";
+include_once "Services/WebDAV/classes/class.ilWebDAVRequestHandler.php";
 $server =  ilWebDAVRequestHandler::getInstance();
 $server->handleRequest();
 ?>
