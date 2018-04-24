@@ -5,11 +5,10 @@ class ilWebDAVAuthentication
     public function authenticate($a_username, $a_password)
     {
         global $ilUser;
-        file_put_contents('webdav_auth.txt', "Try to login with usrname: '$a_username' and a password with length of " . strlen($a_password) . "\n", FILE_APPEND);
+
         if($GLOBALS['DIC']['ilAuthSession']->isAuthenticated())
         {
             ilLoggerFactory::getLogger('init')->debug('User session is valid');
-            //var_dump($ilUser);die;
             return true;
         }
         
