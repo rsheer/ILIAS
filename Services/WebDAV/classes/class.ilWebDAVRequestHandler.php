@@ -29,9 +29,10 @@ class ilWebDAVRequestHandler
 
     public function handleRequest()
     {
+        global $DIC;
         try
         {
-            ilLoggerFactory::getLogger('WebDAV')->debug('New WebDAV Session');
+            ilLoggerFactory::getLogger('WebDAV')->debug('New WebDAV Session with user: ' . $DIC->user()->getLogin());
             $root_dir = $this->getRootDir();
             
             $server = new Sabre\DAV\Server($root_dir);
@@ -64,14 +65,22 @@ class ilWebDAVRequestHandler
          $server->addPlugin(new Sabre\DAV\Browser\Plugin());
 
          // Set authentication plugin
-         $webdav_auth = new ilWebDAVAuthentication();
+         /*$webdav_auth = new ilWebDAVAuthentication();
          $cal = new Sabre\DAV\Auth\Backend\BasicCallBack(array($webdav_auth, 'authenticate'));
          $plugin = new Sabre\DAV\Auth\Plugin($cal);
-         $server->addPlugin($plugin);
+         $server->addPlugin($plugin);*/
          
          // TODO: Implement lock plugin. Code would look like this:
          //$lock_backend = new ilWebDAVLockBackend();
          //$lock_plugin = new Sabre\DAV\Locks\Plugin($lock_backend);
          //$server->addPlugin($lock_plugin);
+    }
+}
+
+class access_mocking
+{
+    public function checkAccess($acces, $cmd, $ref)
+    {
+        return true;
     }
 }

@@ -39,7 +39,7 @@ class ilWebDAVLockBackend extends Sabre\DAV\Locks\Backend\AbstractBackend
 
     public function lock($uri, Sabre\DAV\Locks\LockInfo $lockInfo)
     {
-        
+        file_put_contents('lock_info.txt', print_r($lockInfo, TRUE));
         
         throw new NotImplemented();
     }

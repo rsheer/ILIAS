@@ -50,8 +50,14 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      */
     function put($data)
     {
-        $this->handleFileUpload($data);
-        return $this->getETag();
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> replace file");
+        if($this->access->checkAccess("write", "", $this->obj->getRefId()))
+        {
+            $this->handleFileUpload($data);
+            return $this->getETag();
+        }
+        ilLoggerFactory::getLogger('WebDAV')->error(get_class($this). ' ' . $this->obj->getTitle() ." -> no permission to replace file " . $this->obj->getRefId());
+        throw new Forbidden("Permission denied. No write access for this file");
     }
     
     /**
@@ -63,12 +69,24 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      */
     function get()
     {
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> get file");
         // TODO: Check permission
         if($this->access->checkAccess("read", "", $this->obj->getRefId()))
         {
-            $file = $this->obj->getFile();
-            return (file_exists($file)) ? fopen($file,'r') : null;
+            $file = str_replace("//", "/", $this->obj->getFile());
+            ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> get file -> permission granted");
+            if(file_exists($file))
+            {
+                ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> get file -> file found -> return stream");
+                return fopen($file,'r');
+            }
+            else 
+            {
+                ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> get file -> file not found -> return null");
+                return null;
+            }
         }
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> get file -> permission denied");
         throw new Forbidden("Permission denied. No read access for this file");
     }
     
@@ -100,8 +118,12 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      */
     public function getETag()
     {
-        // This is not a password hash. So I think md5 should do just fine :)
-        return '"' . hash_file("md5", $this->obj->getFile(), false) . '"';
+        if(file_exists($this->obj->getFile()))
+        {
+            // This is not a password hash. So I think md5 should do just fine :)
+            return '"' . hash_file("md5", $this->obj->getFile(), false) . '"';
+        }
+        return null;
     }
     
     /**
@@ -111,7 +133,11 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      */
     public function getSize()
     {
-        return $this->obj->getFileSize();
+        if(file_exists($this->obj->getFile()))
+        {
+            return $this->obj->getFileSize();
+        }
+        return 0;
     }
     
     /**
@@ -119,7 +145,7 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      * {@inheritDoc}
      * @see ilObjectDAV::delete()
      */
-    /*public function delete()
+    public function delete()
     {
         if($this->access->checkAccess('delete', '', $this->obj->getRefId()))
         {
@@ -140,103 +166,97 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      * @param string | resource $a_data
      * @param boolean $a_has_already_a_file
      */
-    public function handleFileUpload($a_data, bool $a_has_already_a_file = FALSE)
+    public function handleFileUpload($a_data)
     {
         global $DIC;
         
-        if($this->access->checkAccess("write", "", $this->obj->getRefId()))
+        $file_dest_path = str_replace("//", "/", $this->obj->getFile());
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> handleFileUpload to '$file_dest_path'");
+        
+        // File upload
+        $written_length = 0;
+        if(is_resource($a_data))
         {
-            $file_dest_path = $this->obj->getFile();
-            
-            if($a_data != NULL)
-            {
-                if(is_resource($a_data))
-                {
-                    $tmp_path = $this->fileUploadToTmpWithStream($a_data);
-                }
-                else if(is_string($a_data))
-                {
-                    $tmp_path = $this->fileUploadToTmpWithString($a_data);
-                }
-                
-                $file_size = sizeof($tmp_path);
-
-                $vrs = ilUtil::virusHandling($tmp_path, '', true);
-                
-                // If vrs[0] == false -> virus found
-                if($vrs[0] == false)
-                {
-                    throw new Forbidden('Virus found!');
-                }
-                
-                // As long as we dont know how to move the uploaded file securely, we do it like this...
-                // Becaus the commented function call below is deprecated.
-                //ilUtil::moveUploadedFile($tmp_path, $this->obj->getFileName(), $this->obj->getDirectory());
-                rename($tmp_path, $this->obj->getFile());
-                
-                include_once("./Services/Utilities/classes/class.ilMimeTypeUtil.php");
-                $this->obj->setFileType(ilMimeTypeUtil::lookupMimeType($file_dest_path));
-                $this->obj->setFileSize($file_size);
-                $this->obj->update();
-            }
-            else
-            {
-                //throw new BadRequest('Invalid put data sent');                
-            }
+            ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> upload from stream to dest");
+            $written_length = $this->fileUploadWithStream($a_data, $file_dest_path);
+        }
+        else if(is_string($a_data))
+        {
+            ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> upload from string to dest");
+            $written_length = $this->fileUploadWithString($a_data, $file_dest_path);
         }
         else 
         {
-            throw new Forbidden('No write access for this file');
+            ilLoggerFactory::getLogger('WebDAV')->error(get_class($this). ' ' . $this->obj->getTitle() ." -> invalid upload data sent");
+            throw new BadRequest('Invalid put data sent'); 
         }
+        
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> uploaded $written_length byte to path '$file_dest_path'");
+        
+        // Security checks
+        $vrs = ilUtil::virusHandling($file_dest_path, '', true);
+        // If vrs[0] == false -> virus found
+        if($vrs[0] == false)
+        {
+            ilLoggerFactory::getLogger('WebDAV')->error(get_class($this). ' ' . $this->obj->getTitle() ." -> virus found on '$file_dest_path'!");
+            unlink($file_dest_path);
+            $this->obj->delete();
+            throw new Forbidden('Virus found!');
+        }
+        
+        // Set last meta data
+        include_once("./Services/Utilities/classes/class.ilMimeTypeUtil.php");
+        $this->obj->setFileType(ilMimeTypeUtil::lookupMimeType($file_dest_path));
+        $this->obj->setFileSize($written_length);
+        $this->obj->update();
+        
+        // TODO: Fix this dirty stuff -> after file->update, the returned dir of getFile() changes from ./xy.file to ./001/xy.file
+        rename($file_dest_path, str_replace("//", "/", $this->obj->getFile()));
+        
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> fileupload successful!");
     }
     
-    /**
-     * Write given data (as resource) to a temporary file in the tempdir.
+        /**
+     * Write given data (as Resource) to the given file
      * 
-     * @return string Path to temporary file. Please unlink by your self.
+     * @param Resource $a_data
+     * @param string $file_dest_path
+     * @throws Forbidden
+     * @return number
      */
-    protected function fileUploadToTmpWithStream($a_stream)
+    protected function fileUploadWithStream($a_data, string $file_dest_path)
     {
-        $tmp_path = $this->createPathForTmpFile();
+        $write_stream = fopen($file_dest_path,'w');
         
-        $write_stream = fopen($tmp_path,'w');
         while (!feof($a_data)) {
             if (false === ($written = fwrite($write_stream, fread($a_data, 4096)))) {
                 fclose($write_stream);
                 throw new Forbidden('Forbidden to write file');
             }
+            $written_length += $written;
         }
         fclose($write_stream);
         
-        return $tmp_path;
+        return $written_length;
     }
     
     /**
-     * Write given data (as resource) to a temporary file in the tempdir.
+     * Write given data (as string) to the given file
      * 
-     * @return string Path to temporary file. Please unlink by your self.
+     * @param string $a_data
+     * @param string $file_dest_path
+     * @throws Forbidden
+     * @return number $written_length
      */
-    protected function fileUploadToTmpWithString($a_str_data)
+    protected function fileUploadWithString(string $a_data, string $file_dest_path)
     {
-        $tmp_path = $this->createPathForTmpFile();
-        
-        $write_stream = fopen($tmp_path,'w');
-        $written_length = fwrite($write_stream, $a_str_data);
+        $write_stream = fopen($file_dest_path, 'w');
+        $written_length = fwrite($write_stream, $a_data);
         fclose($write_stream);
-        
-        if($written_length === false && strlen($a_str_data) > 0)
+        if($written_length === false && strlen($a_data) > 0)
         {
             throw new Forbidden('Forbidden to write file');
         }
-        return $tmp_path;
-    }
-    
-    /**
-     * Returns
-     * @return string
-     */
-    protected function createPathForTmpFile()
-    {
-        return tempnam(sys_get_temp_dir(), '');
+        return $written_length;
     }
 }

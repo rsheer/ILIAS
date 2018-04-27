@@ -46,13 +46,16 @@ abstract class ilObjectDAV extends Sabre\DAV\Node
     {
         global $DIC;
         
-        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this)." -> constructor");
+        
         
         $this->obj =& $a_obj;
         $this->ref_id = $a_obj->getRefId();
         
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this)." -> constructor ".$this->obj->getTitle()."($this->ref_id)");
+        
         $this->tree = $DIC->repositoryTree();
-        $this->access = $DIC->access();
+        // TODO: Remove this mocking stuff when including security and access checks to testing
+        $this->access = new access_mocking();
     }
     
     /**
@@ -82,7 +85,7 @@ abstract class ilObjectDAV extends Sabre\DAV\Node
      */
     function getLastModified() {
         
-        return strtotime($this->obj->getLastUpdateDate());
+        return ($this->obj == null) ? null : strtotime($this->obj->getLastUpdateDate());
     }
     
     /**

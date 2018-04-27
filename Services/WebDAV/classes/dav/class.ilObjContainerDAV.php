@@ -44,37 +44,54 @@ abstract class ilObjContainerDAV extends ilObjectDAV implements Sabre\DAV\IColle
      */
     public function createFile($name, $data = null)
     {
-        // Maybe getChild is more efficient. But hoping for an exception isnt that beautiful
-        if($this->childExists($name))
-        {
-            $file_dav = $this->getChild($name);
-            $file_dav->handleFileUpload($data);
-        }
-        else 
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> createFile('$name')");
+        
+        if($this->access->checkAccess("write", '', $this->obj->getRefId()))
         {
             // Check if file has valid extension
             include_once("./Services/Utilities/classes/class.ilFileUtils.php");
-            if(/*$name == ilFileUtils::getValidFilename($name)*/true)
+            if($name == ilFileUtils::getValidFilename($name))
             {
-                $file_obj = new ilObjFile();
-                $file_obj->setTitle($name);
-                $file_obj->setFileName($name);
-                $file_obj->createDirectory();
-                $file_obj->create();
-    
-                $file_obj->createReference();
-                $file_obj->putInTree($this->obj->getRefId());
-                $file_obj->update();
-                
-                $file_dav = new ilObjFileDAV($file_obj);
-                $file_dav->handleFileUpload($data);
-            }
+                // Maybe getChild is more efficient. But hoping for an exception isnt that beautiful
+                if($this->childExists($name))
+                {
+                    ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> file already exists -> replace it");
+                    $file_dav = $this->getChild($name);
+                    $file_dav->handleFileUpload($data);
+                }
+                else 
+                {
+                    ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> file does not exist -> create it");
+        
+                    $file_obj = new ilObjFile();
+                    $file_obj->setTitle($name);
+                    $file_obj->setFileName($name);
+                    $file_obj->createDirectory();
+                    $file_obj->create();
+        
+                    $file_obj->createReference();
+                    $file_obj->putInTree($this->obj->getRefId());
+                    $file_obj->update();
+                    
+                    ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> created file obj with ref_id" . $file_obj->getRefId());
+                    
+                    $file_dav = new ilObjFileDAV($file_obj);
+                    $file_dav->handleFileUpload($data);
+                    }
+         
+                }
             else
             {
                 // Throw forbidden if invalid exstension. As far as we know, it is sadly not
                 // possible to inform the user why this is forbidden.
+                ilLoggerFactory::getLogger('WebDAV')->warning(get_class($this). ' ' . $this->obj->getTitle() ." -> invalid File-Extension for file '$name'");
                 throw new Forbidden("Invalid file extension. But you won't see this anyway...");
             }
+        }
+        else 
+        {
+            ilLoggerFactory::getLogger('WebDAV')->error(get_class($this). ' ' . $this->obj->getTitle() ." -> no write access on " . $this->obj->getRefId());
+            throw new Forbidden("No write access");
         }
 
         return $file_dav->getETag();
@@ -93,6 +110,8 @@ abstract class ilObjContainerDAV extends ilObjectDAV implements Sabre\DAV\IColle
         $new_obj;
         $type = $this->getChildCollectionType();
         
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> try to create directory with $type");
+        
         switch($type)
         {
             case 'cat':
@@ -104,6 +123,7 @@ abstract class ilObjContainerDAV extends ilObjectDAV implements Sabre\DAV\IColle
                 break;
             
             default:
+                ilLoggerFactory::getLogger('WebDAV')->error(get_class($this). ' ' . $this->obj->getTitle() ." -> $type is not supported as webdav directory");
                 throw new NotImplemented("Create type '$type' as collection is not implemented yet");
         }
         
@@ -116,6 +136,8 @@ abstract class ilObjContainerDAV extends ilObjectDAV implements Sabre\DAV\IColle
         $new_obj->putInTree($this->obj->getRefId());
         $new_obj->setPermissions($this->obj->getRefId());
         $new_obj->update();
+        
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> directory '$name' successfully created!");
     }
     
     /**
@@ -192,7 +214,7 @@ abstract class ilObjContainerDAV extends ilObjectDAV implements Sabre\DAV\IColle
                 }
             }
         }
-        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> return array with ". count($child_nodes) . "childs");
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> return array with ". count($child_nodes) . " children");
         return $child_nodes;
     }
     
