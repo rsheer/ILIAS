@@ -50,44 +50,42 @@ abstract class ilObjContainerDAV extends ilObjectDAV implements Sabre\DAV\IColle
         {
             // Check if file has valid extension
             include_once("./Services/Utilities/classes/class.ilFileUtils.php");
-            if($name == ilFileUtils::getValidFilename($name))
-            {
-                // Maybe getChild is more efficient. But hoping for an exception isnt that beautiful
-                if($this->childExists($name))
-                {
-                    ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> file already exists -> replace it");
-                    $file_dav = $this->getChild($name);
-                    $file_dav->handleFileUpload($data);
-                }
-                else 
-                {
-                    ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> file does not exist -> create it");
-        
-                    $file_obj = new ilObjFile();
-                    $file_obj->setTitle($name);
-                    $file_obj->setFileName($name);
-                    $file_obj->createDirectory();
-                    $file_obj->create();
-        
-                    $file_obj->createReference();
-                    $file_obj->putInTree($this->obj->getRefId());
-                    $file_obj->update();
-                    
-                    ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> created file obj with ref_id" . $file_obj->getRefId());
-                    
-                    $file_dav = new ilObjFileDAV($file_obj);
-                    $file_dav->handleFileUpload($data);
-                    }
-         
-                }
-            else
+            if(!(name == ilFileUtils::getValidFilename($name)))
             {
                 // Throw forbidden if invalid exstension. As far as we know, it is sadly not
                 // possible to inform the user why this is forbidden.
                 ilLoggerFactory::getLogger('WebDAV')->warning(get_class($this). ' ' . $this->obj->getTitle() ." -> invalid File-Extension for file '$name'");
                 throw new Forbidden("Invalid file extension. But you won't see this anyway...");
             }
-        }
+            
+            // Maybe getChild is more efficient. But hoping for an exception isnt that beautiful
+            if($this->childExists($name))
+            {
+                ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> file already exists -> replace it");
+                $file_dav = $this->getChild($name);
+                $file_dav->handleFileUpload($data);
+            }
+            else 
+            {
+                ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> file does not exist -> create it");
+    
+                $file_obj = new ilObjFile();
+                $file_obj->setTitle($name);
+                $file_obj->setFileName($name);
+                $file_obj->createDirectory();
+                $file_obj->create();
+    
+                $file_obj->createReference();
+                $file_obj->putInTree($this->obj->getRefId());
+                $file_obj->update();
+                
+                ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> created file obj with ref_id" . $file_obj->getRefId());
+                
+                $file_dav = new ilObjFileDAV($file_obj);
+                $file_dav->handleFileUpload($data);
+                }
+            }
+
         else 
         {
             ilLoggerFactory::getLogger('WebDAV')->error(get_class($this). ' ' . $this->obj->getTitle() ." -> no write access on " . $this->obj->getRefId());

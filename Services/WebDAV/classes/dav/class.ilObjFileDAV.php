@@ -50,6 +50,16 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      */
     function put($data)
     {
+        // Check if file has valid extension
+        include_once("./Services/Utilities/classes/class.ilFileUtils.php");
+        if(!(name == ilFileUtils::getValidFilename($name)))
+        {
+            // Throw forbidden if invalid exstension. As far as we know, it is sadly not
+            // possible to inform the user why this is forbidden.
+            ilLoggerFactory::getLogger('WebDAV')->warning(get_class($this). ' ' . $this->obj->getTitle() ." -> invalid File-Extension for file '$name'");
+            throw new Forbidden("Invalid file extension. But you won't see this anyway...");
+        }
+        
         ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> replace file");
         if($this->access->checkAccess("write", "", $this->obj->getRefId()))
         {
@@ -73,7 +83,7 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
         // TODO: Check permission
         if($this->access->checkAccess("read", "", $this->obj->getRefId()))
         {
-            $file = str_replace("//", "/", $this->obj->getFile());
+            $file = $this->getPathToFile();
             ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> get file -> permission granted");
             if(file_exists($file))
             {
@@ -82,7 +92,7 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
             }
             else 
             {
-                ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> get file -> file not found -> return null");
+                ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> get file -> file not found at $file -> return null");
                 return null;
             }
         }
@@ -118,10 +128,10 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      */
     public function getETag()
     {
-        if(file_exists($this->obj->getFile()))
+        if(file_exists($this->getPathToFile()))
         {
             // This is not a password hash. So I think md5 should do just fine :)
-            return '"' . hash_file("md5", $this->obj->getFile(), false) . '"';
+            return '"' . hash_file("md5", $this->getPathToFile(), false) . '"';
         }
         return null;
     }
@@ -133,7 +143,7 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      */
     public function getSize()
     {
-        if(file_exists($this->obj->getFile()))
+        if(file_exists($this->getPathToFile()))
         {
             return $this->obj->getFileSize();
         }
@@ -170,7 +180,7 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
     {
         global $DIC;
         
-        $file_dest_path = str_replace("//", "/", $this->obj->getFile());
+        $file_dest_path = $this->getPathToFile();
         ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> handleFileUpload to '$file_dest_path'");
         
         // File upload
@@ -211,7 +221,7 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
         $this->obj->update();
         
         // TODO: Fix this dirty stuff -> after file->update, the returned dir of getFile() changes from ./xy.file to ./001/xy.file
-        rename($file_dest_path, str_replace("//", "/", $this->obj->getFile()));
+        $this->obj->createDirectory();
         
         ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> fileupload successful!");
     }
@@ -258,5 +268,10 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
             throw new Forbidden('Forbidden to write file');
         }
         return $written_length;
+    }
+    
+    protected function getPathToFile()
+    {
+        return str_replace("//", "/", $this->obj->getDirectory() .  $this->obj->getFileName());
     }
 }

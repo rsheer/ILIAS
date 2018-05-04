@@ -35,7 +35,8 @@ class ilClientNodeDAV implements Sabre\DAV\ICollection
         
         ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> constructor with client '$client_name'");
         
-        $this->access = $DIC->access();
+        // TODO: Add real access checker!
+        $this->access = new access_mocking();//$DIC->access();
         $this->client_name = $client_name;
         $this->name_of_repository_root = 'ILIAS';
     }
@@ -77,17 +78,15 @@ class ilClientNodeDAV implements Sabre\DAV\ICollection
 
     protected function getMountPointByReference($name)
     {
-        global $ilUser;
         $ref_id = $this->getRefIdFromName($name);
         
         if($ref_id > 0)
         {
-            //if($this->access->checkAccess('read', '', $ref_id))
-            //{
-                // TODO: Add access-checking...
+            if($this->access->checkAccess('read', '', $ref_id))
+            {
                 return ilObjectDAV::_createDAVObjectForRefId($ref_id);
-            //}
-            //var_dump($ilUser);die;
+            }
+
             throw new Forbidden("No permission for object with reference ID $ref_id ");
         }
         
