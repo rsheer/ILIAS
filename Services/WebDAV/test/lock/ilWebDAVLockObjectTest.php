@@ -1,20 +1,23 @@
 <?php
+use\PHPUnit\Framework\TestCase;
+use\Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
-
-use Monolog\TestCase;
 
 class ilWebDAVLockObjectTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     
+    /**
+     * @inheritDoc
+     */
     protected function setUp()
     {
         parent::setUp();
     }
     
-    public function testIfTestingWorks()
+    public function testCreateInfoFromSabreLock()
     {
-        
+
     }
     
 }

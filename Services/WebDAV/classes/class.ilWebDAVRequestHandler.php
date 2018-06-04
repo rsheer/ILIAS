@@ -6,6 +6,7 @@ require_once 'libs/composer/vendor/autoload.php';
 
 // Include all needed classes for a webdav-request
 include_once "Services/WebDAV/classes/auth/class.ilWebDAVAuthentication.php";
+include_once "Services/WebDAV/classes/db/class.ilWebDAVDBManager.php";
 include_once "Services/WebDAV/classes/dav/class.ilObjectDAV.php";
 include_once "Services/WebDAV/classes/dav/class.ilObjContainerDAV.php";
 include_once "Services/WebDAV/classes/dav/class.ilObjFileDAV.php";
@@ -65,15 +66,18 @@ class ilWebDAVRequestHandler
          $server->addPlugin(new Sabre\DAV\Browser\Plugin());
 
          // Set authentication plugin
-         /*$webdav_auth = new ilWebDAVAuthentication();
+         $webdav_auth = new ilWebDAVAuthentication();
          $cal = new Sabre\DAV\Auth\Backend\BasicCallBack(array($webdav_auth, 'authenticate'));
          $plugin = new Sabre\DAV\Auth\Plugin($cal);
-         $server->addPlugin($plugin);*/
+         $server->addPlugin($plugin);
          
          // TODO: Implement lock plugin. Code would look like this:
-         $lock_backend = new ilWebDAVLockBackend();
+         /*
+         $db_manager = new ilWebDAVDBManager($DIC->database());
+         $lock_backend = new ilWebDAVLockBackend($db_manager, $DIC->user(), $DIC->access());
          $lock_plugin = new Sabre\DAV\Locks\Plugin($lock_backend);
          $server->addPlugin($lock_plugin);
+         */
     }
 }
 

@@ -47,7 +47,7 @@ abstract class ilObjectDAV extends Sabre\DAV\Node
         global $DIC;
         
         
-        
+        file_put_contents("auth_webdav_call.txt", time() . " Creating DAV-Object with user: " . $DIC->user()->getId() . "\n", FILE_APPEND);
         $this->obj =& $a_obj;
         $this->ref_id = $a_obj->getRefId();
         
@@ -116,7 +116,7 @@ abstract class ilObjectDAV extends Sabre\DAV\Node
     function setName($a_name)
     {
         // TODO: Maybe we need to sanitize the name before safe it
-        if($this->access->checkAccess("write"))
+        if($this->access->checkAccess("write", '', $this->obj->getRefId()))
         {
             $this->obj->setTitle($a_name);
             $this->obj->update();

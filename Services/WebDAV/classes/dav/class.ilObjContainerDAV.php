@@ -50,7 +50,7 @@ abstract class ilObjContainerDAV extends ilObjectDAV implements Sabre\DAV\IColle
         {
             // Check if file has valid extension
             include_once("./Services/Utilities/classes/class.ilFileUtils.php");
-            if(!(name == ilFileUtils::getValidFilename($name)))
+            if($name != ilFileUtils::getValidFilename($name))
             {
                 // Throw forbidden if invalid exstension. As far as we know, it is sadly not
                 // possible to inform the user why this is forbidden.

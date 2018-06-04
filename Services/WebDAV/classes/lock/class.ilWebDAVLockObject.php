@@ -1,111 +1,46 @@
 <?php
+
 require_once('Services/ActiveRecord/Connector/class.arConnectorSession.php');
 
 /**
+ * Represents a lock on an ilias object. Objects from this class are immutable!
  * 
  * @author faheer
  *
  */
-class ilWebDAVLockObject extends ActiveRecord
+class ilWebDAVLockObject
 {
-    const TABLE_NAME = 'dav_lock';
-    
     /**
-     * @return string
+     * 
+     * @param string $token     example: 
+     * @param int $obj_id       example: 1111
+     * @param int $ilias_owner  example: 2222
+     * @param string $dav_owner example: 'Desktop\Raphi'
+     * @param int $expires      example: '795596280'
+     * @param int $depth        example: '-1'
+     * @param string $type      example: 'w'
+     * @param string $scope     example: 'x'
      */
-    static function returnDbTableName() {
-        return self::TABLE_NAME;
+    public function __construct($token, $obj_id, $ilias_owner, $dav_owner, $expires, $depth, $type, $scope){
+        $this->token = $token;
+        $this->obj_id = $obj_id;
+        $this->ilias_owner = $ilias_owner;
+        $tihs->dav_owner = $dav_owner;
+        $this->expires = $expires;
+        $this->depth = $depth;
+        $this->type = $type;
+        $this->scope = $scope;
     }
     
-    /**
-     * @var string
-     *
-     * @con_is_primary true
-     * @con_has_field  true
-     * @con_fieldtype  integer
-     * @con_length     255
-     */
     protected $token;
-    
-    /**
-     * @var int
-     *
-     * @con_has_field  true
-     * @con_fieldtype  integer
-     * @con_length     4
-     */
     protected $obj_id;
-    
-    /**
-     * @var string
-     *
-     * @con_has_field  true
-     * @con_fieldtype  integer
-     * @con_length     4
-     */
-    protected $node_id;
-    
-    /**
-     * @var int
-     *
-     * @con_has_field  true
-     * @con_fieldtype  integer
-     * @con_length     4
-     */
     protected $ilias_owner;
-    
-    /**
-     * @var string
-     *
-     * @con_has_field  true
-     * @con_fieldtype  string
-     * @con_length     200
-     */
     protected $dav_owner;
-    
-    /**
-     * @var int
-     *
-     * @con_has_field  true
-     * @con_fieldtype  integer
-     * @con_length     
-     */
     protected $expires;
-    
-    /**
-     * @var int
-     *
-     * @con_has_field  true
-     * @con_fieldtype  integer
-     * @con_length     1
-     */
     protected $depth;
-    
-    /**
-     * @var string
-     *
-     * @con_has_field  true
-     * @con_fieldtype  text
-     * @con_length     1
-     */
     protected $type;
-    
-    /**
-     * @var string
-     *
-     * @con_has_field  true
-     * @con_fieldtype  text
-     * @con_length     1
-     */
     protected $scope;
     
-    /**
-     * @param string $token
-     */
-    public function setToken($token)
-    {
-        $this->token = $token;
-    }
     
     
     /**
@@ -115,15 +50,7 @@ class ilWebDAVLockObject extends ActiveRecord
     {
         return $this->type;
     }
-    
-    /**
-     * @param int $obj_id
-     */
-    public function setObjId($obj_id)
-    {
-        $this->obj_id = $obj_id;
-    }
-    
+
     /**
      * @return int
      */
@@ -133,29 +60,13 @@ class ilWebDAVLockObject extends ActiveRecord
     }
     
     /**
-     * @param int $ilias_owner
-     */
-    public function setIliasOwner($ilias_owner)
-    {
-        $this->ilias_owner = $ilias_owner;
-    }
-    
-    /**
      * @return int
      */
     public function getIliasOwner()
     {
         return $this->ilias_owner;
     }
-    
-    /**
-     * @param string $dav_owner
-     */
-    public function setDavOwner($dav_owner)
-    {
-        $this->dav_owner = $dav_owner;
-    }
-    
+      
     /**
      * @return string
      */
@@ -163,29 +74,13 @@ class ilWebDAVLockObject extends ActiveRecord
     {
         return $this->dav_owner;
     }
-    
-    /**
-     * @param int $expires
-     */
-    public function setExpires($expires)
-    {
-        $this->expires = $expires;
-    }
-    
+        
     /**
      * @return int
      */
-    public function getExpire()
+    public function getExpires()
     {
         return $this->expires;
-    }
-    
-    /**
-     * @param int $depth
-     */
-    public function setDepth($depth)
-    {
-        $this->depth = $dept;
     }
     
     /**
@@ -197,28 +92,11 @@ class ilWebDAVLockObject extends ActiveRecord
     }
     
     /**
-     * @param string $type
-     */
-    public function setType($type)
-    {
-        $this->type = $type;
-    }
-    
-    /**
      * @return string
      */
     public function getType()
     {
         return $this->type;
-    }
-    
-    
-    /**
-     * @param string $scope
-     */
-    public function setScope($scope)
-    {
-        $this->scope = $scope;
     }
     
     /**
@@ -229,51 +107,66 @@ class ilWebDAVLockObject extends ActiveRecord
         return $this->scope;
     }
     
+    public static function createFromAssocArray($assoc_array)
+    {
+        return new ilWebDAVLockObject($assoc_array['token'], 
+            $assoc_array['obj_id'], 
+            $assoc_array['ilias_owner'], 
+            $assoc_array['dav_owner'], 
+            $assoc_array['expires'], 
+            $assoc_array['depth'], 
+            $assoc_array['type'], 
+            $assoc_array['scope']);
+    }
     
     /**
-     * Inits an ILIAS lock object from a sabreDAV lock object
+     * Creates an ILIAS lock object from a sabreDAV lock object
      * 
-     * IMPORTANT: This method just initializes the object. It does not
+     * IMPORTANT: This method just creates and initializes an object. It does not
      * create any record in the database!
      * 
      * @param Sabre\DAV\Locks\LockInfo $lock_info
      */
-    public function initFromLockInfo(Sabre\DAV\Locks\LockInfo $lock_info)
+    public static function createFromSabreLock(Sabre\DAV\Locks\LockInfo $lock_info)
     {
         global $DIC;
-
+        
         $ref_id = ilWebDAVTree::getRefIdForWebDAVPath($lock_info->uri);
+        $obj_id = ilObject::_lookupObjectId($ref_id);
+        
+        
         ilLoggerFactory::getLogger('WebDAV')->debug("Got ref $ref_id for path $lock_info->uri");
-        // TODO: Check permission!
-        //if($DIC->access()->checkAccess('write', '', $ref_id))
-        if(true)
-        {
-            $this->token = $lock_info->token;
-            $this->obj_id = 55;//ilObject::_lookupObjectId($ref_id);
-            $this->ilias_owner = 1234;//$DIC->user()->getId();
-            $this->dav_owner = $lock_info->owner;
-            $this->expires = time() + 3600;
-            $this->depth = $lock_info->depth;
-            $this->type = 'w';
-            $this->scope = $lock_info->scope;
-        }
-        else
-        {
-            throw new Sabre\DAV\Exception\Forbidden();
-        }
+        
+        
+        $ilias_lock = new ilWebDAVLockObject(
+            $lock_info->token,                  // token
+            $obj_id,                            // obj_id
+            $DIC->user()->getOwner()->getId(),  // ilias_owner
+            $lock_info->owner,                  // dav_owner
+            time() + 3600,                      // expires
+            $lock_info->depth,                  // depth
+            'w',                                // type
+            $lock_info->scope);                 // scope
+        
+        return $ilias_lock;
     }
     
     public function getAsSabreDavLock($uri)
     {
         global $DIC;
         
+        $timestamp = time();
+        
         $sabre_lock = new Sabre\DAV\Locks\LockInfo();
         $sabre_lock->created;
         $sabre_lock->depth = $this->depth;
         $sabre_lock->owner = $this->dav_owner;
         $sabre_lock->scope = $this->scope;
-        $sabre_lock->timeout = $this->expires - time();
+        $sabre_lock->timeout = $this->expires - $timestamp;
+        $sabre_lock->created = $this->expires - 3600;
         $sabre_lock->token = $this->token;
         $sabre_lock->uri = $uri;
+        
+        return $sabre_lock;
     }
 }
