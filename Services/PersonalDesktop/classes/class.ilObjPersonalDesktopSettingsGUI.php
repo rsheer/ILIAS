@@ -396,7 +396,7 @@ class ilObjPersonalDesktopSettingsGUI extends ilObjectGUI
 		*/
 		
 		// Load the disk quota settings object
-		require_once 'Services/WebDAV/classes/diskquota/ObjDiskQuotaSettings.php';
+		require_once 'Services/WebDAV/classes/class.ilObjDiskQuotaSettings.php';
 		$disk_quota_obj = ilObjDiskQuotaSettings::getInstance();
 		
 		// Enable disk quota
@@ -455,7 +455,7 @@ class ilObjPersonalDesktopSettingsGUI extends ilObjectGUI
 		// $ilSetting->set('user_portfolios', (int)($_POST['prtf'] ? 1 : 0));
 		
 		// Load the disk quota settings object
-		require_once 'Services/WebDAV/classes/diskquota/class.ilObjDiskQuotaSettings.php';
+		require_once 'Services/WebDAV/classes/class.ilObjDiskQuotaSettings.php';
 		$disk_quota_obj = ilObjDiskQuotaSettings::getInstance();		
 		$disk_quota_obj->setPersonalWorkspaceDiskQuotaEnabled($_POST['enable_personal_workspace_disk_quota'] == '1');
 		$disk_quota_obj->update();
@@ -470,7 +470,7 @@ class ilObjPersonalDesktopSettingsGUI extends ilObjectGUI
 		{			
 			case ilAdministrationSettingsFormHandler::FORM_FILES_QUOTA:
 				
-				require_once 'Services/WebDAV/classes/diskquota/class.ilObjDiskQuotaSettings.php';
+				require_once 'Services/WebDAV/classes/class.ilObjDiskQuotaSettings.php';
 				$disk_quota_obj = ilObjDiskQuotaSettings::getInstance();
 				
 				$fields = array('personal_workspace_disk_quota' => array($disk_quota_obj->isPersonalWorkspaceDiskQuotaEnabled(), ilAdministrationSettingsFormHandler::VALUE_BOOL));
