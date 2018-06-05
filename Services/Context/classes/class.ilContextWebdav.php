@@ -51,7 +51,7 @@ class ilContextWebdav implements ilContextTemplate
 	 */
 	public static function hasHTML()
 	{
-		return true;
+		return false;
 	}
 	
 	/**
@@ -61,7 +61,7 @@ class ilContextWebdav implements ilContextTemplate
 	 */
 	public static function usesTemplate()
 	{
-		return true;
+		return false;
 	}
 	
 	/**
@@ -81,7 +81,7 @@ class ilContextWebdav implements ilContextTemplate
 	 */
 	public static function doAuthentication()
 	{
-		return true;
+		return false;
 	}
 
 	/**
@@ -90,7 +90,7 @@ class ilContextWebdav implements ilContextTemplate
 	 */
 	public static function supportsPersistentSessions()
 	{
-		return true;
+		return false;
 	}
 	
 	/**

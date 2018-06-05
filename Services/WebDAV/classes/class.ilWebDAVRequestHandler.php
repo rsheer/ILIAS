@@ -70,7 +70,7 @@ class ilWebDAVRequestHandler
          $cal = new Sabre\DAV\Auth\Backend\BasicCallBack(array($webdav_auth, 'authenticate'));
          $plugin = new Sabre\DAV\Auth\Plugin($cal);
          $server->addPlugin($plugin);
-         
+       
          // TODO: Implement lock plugin. Code would look like this:
          /*
          $db_manager = new ilWebDAVDBManager($DIC->database());

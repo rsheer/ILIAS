@@ -4,15 +4,14 @@ class ilWebDAVAuthentication
 {
     public function authenticate($a_username, $a_password)
     {
-        global $ilUser;
+        global $ilUser, $DIC;
 
-        if($GLOBALS['DIC']['ilAuthSession']->isAuthenticated())
+        if($GLOBALS['DIC']['ilAuthSession']->isAuthenticated() && $DIC->user()->getId() != 0)
         {
-            ilLoggerFactory::getLogger('init')->debug('User session is valid');
+            ilLoggerFactory::getLogger('webdav')->debug('User authenticated through session. UserID = ' . $DIC->user()->getId());
             return true;
         }
-        
-        //var_dump(debug_backtrace());die;
+       
         include_once './Services/Authentication/classes/Frontend/class.ilAuthFrontendCredentialsHTTP.php';
         $credentials = new ilAuthFrontendCredentialsHTTP();
         $credentials->setUsername($a_username);
@@ -40,18 +39,15 @@ class ilWebDAVAuthentication
         switch($status->getStatus())
         {
             case ilAuthStatus::STATUS_AUTHENTICATED:
-                ilLoggerFactory::getLogger('auth')->debug('Authentication successful. Serving request');
-                ilLoggerFactory::getLogger('auth')->info('Authenticated user id: ' . $GLOBALS['DIC']['ilAuthSession']->getUserId());
-                ilLoggerFactory::getLogger('auth')->debug('Auth info authenticated: ' .$GLOBALS['DIC']['ilAuthSession']->isAuthenticated());
-                ilLoggerFactory::getLogger('auth')->debug('Auth info expired: ' .$GLOBALS['DIC']['ilAuthSession']->isExpired());
+                ilLoggerFactory::getLogger('webdav')->debug('User authenticated through basic authentication. UserId = ' . $DIC->user()->getId());
                 return true;
                 
             case ilAuthStatus::STATUS_ACCOUNT_MIGRATION_REQUIRED:
-                ilLoggerFactory::getLogger('auth')->debug('Authentication failed; Account migration required.');
+                ilLoggerFactory::getLogger('webdav')->debug('Basic authentication failed; Account migration required.');
                 return false;
                 
             case ilAuthStatus::STATUS_AUTHENTICATION_FAILED:
-                ilLoggerFactory::getLogger('auth')->debug('Authentication failed; Wrong login, password.');
+                ilLoggerFactory::getLogger('webdav')->debug('Basic authentication failed; Wrong login, password.');
                 return false;
         }
         
