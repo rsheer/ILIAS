@@ -1218,16 +1218,16 @@ class ilObjectListGUI
 				$webdav_lock_backend = new ilWebDAVLockBackend();
 				if ($ilUser->getId() != ANONYMOUS_USER_ID)
 				{
-					$locks =& $webdav_lock_backend->getLocksOnObjectObj($this->obj_id);
-					if (count($locks) > 0)
+					$lock = $webdav_lock_backend->getLocksOnObjectId($this->obj_id);
+                    if ($lock != false)
 					{
-						$lockUser = new ilObjUser($locks[0]['ilias_owner']);
+						$lock_user = new ilObjUser($lock->getIliasOwner());
 
 						$props[] = array(
 							"alert" => false, 
 							"property" => $lng->txt("in_use_by"),
-							"value" => $lockUser->getLogin(),
-							"link" => 	"./ilias.php?user=".$locks[0]['ilias_owner'].'&cmd=showUserProfile&cmdClass=ilpersonaldesktopgui&cmdNode=1&baseClass=ilPersonalDesktopGUI',
+							"value" => $lock_user->getLogin(),
+							"link" => 	"./ilias.php?user=".$lock_user->getId().'&cmd=showUserProfile&cmdClass=ilpersonaldesktopgui&baseClass=ilPersonalDesktopGUI',
 						);
 					}
 				}

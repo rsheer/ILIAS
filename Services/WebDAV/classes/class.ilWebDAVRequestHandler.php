@@ -72,12 +72,12 @@ class ilWebDAVRequestHandler
          $server->addPlugin($plugin);
        
          // TODO: Implement lock plugin. Code would look like this:
-         /*
+         
          $db_manager = new ilWebDAVDBManager($DIC->database());
          $lock_backend = new ilWebDAVLockBackend($db_manager, $DIC->user(), $DIC->access());
          $lock_plugin = new Sabre\DAV\Locks\Plugin($lock_backend);
          $server->addPlugin($lock_plugin);
-         */
+         
     }
 }
 

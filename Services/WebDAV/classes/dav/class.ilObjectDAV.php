@@ -49,7 +49,7 @@ abstract class ilObjectDAV extends Sabre\DAV\Node
         $this->obj =& $a_obj;
         $this->ref_id = $a_obj->getRefId();
         
-        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this)." -> constructor ".$this->obj->getTitle()."($this->ref_id)");
+        //ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this)." -> constructor ".$this->obj->getTitle()."($this->ref_id)");
         
         $this->tree = $DIC->repositoryTree();
         // TODO: Remove this mocking stuff when including security and access checks to testing

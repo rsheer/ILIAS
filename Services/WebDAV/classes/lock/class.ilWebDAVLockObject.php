@@ -22,14 +22,16 @@ class ilWebDAVLockObject
      * @param string $scope     example: 'x'
      */
     public function __construct($token, $obj_id, $ilias_owner, $dav_owner, $expires, $depth, $type, $scope){
+        ilLoggerFactory::getLogger('WebDAV')->info(get_class($this). " -> Constructor of LockObject");
         $this->token = $token;
         $this->obj_id = $obj_id;
         $this->ilias_owner = $ilias_owner;
-        $tihs->dav_owner = $dav_owner;
+        $this->dav_owner = $dav_owner;
         $this->expires = $expires;
         $this->depth = $depth;
         $this->type = $type;
         $this->scope = $scope;
+        ilLoggerFactory::getLogger('WebDAV')->info(get_class($this). " -> LockObject created but not persisted yet");
     }
     
     protected $token;
@@ -41,14 +43,12 @@ class ilWebDAVLockObject
     protected $type;
     protected $scope;
     
-    
-    
     /**
      * @return string
      */
     public function getToken()
     {
-        return $this->type;
+        return $this->token;
     }
 
     /**
@@ -137,17 +137,16 @@ class ilWebDAVLockObject
         
         ilLoggerFactory::getLogger('WebDAV')->debug("Got ref $ref_id for path $lock_info->uri");
         
-        
         $ilias_lock = new ilWebDAVLockObject(
             $lock_info->token,                  // token
             $obj_id,                            // obj_id
-            $DIC->user()->getOwner()->getId(),  // ilias_owner
+            $DIC->user()->getId(),              // ilias_owner
             $lock_info->owner,                  // dav_owner
             time() + 3600,                      // expires
             $lock_info->depth,                  // depth
             'w',                                // type
             $lock_info->scope);                 // scope
-        
+            
         return $ilias_lock;
     }
     

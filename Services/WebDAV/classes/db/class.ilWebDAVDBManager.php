@@ -28,31 +28,35 @@ class ilWebDAVDBManager
     /**
      * Returns lock Object from given tocken
      * @param string $token
-     * @return array|boolean
+     * @return ilWebDAVLockObject|boolean
      */
-    public function getLockObjectWithTokenFromDB($token, $return_as_assoc = false)
+    public function getLockObjectWithTokenFromDB($token)
     {
-        $query = "SELECT * FROM $this->lock_table WHERE token = " . $this->db->quote($token, 'text');
+        $query = "SELECT * FROM $this->lock_table"
+                        . " WHERE token = " . $this->db->quote($token, 'text')
+                        . " AND expires > " . $this->db->quote(time(),'integer');
         
         $select_result = $this->db->query($query);
         $row = $this->db->fetchAssoc($select_result);
         
-        if($row && $row['expires'] > time())
+        if($row)
         {
             
-            return $return_as_assoc ? $row : ilWebDAVLockObject::createFromAssocArray($row);
+            return ilWebDAVLockObject::createFromAssocArray($row);
         }
         
         return false;
     }
     
-    public function getLockObjectWithObjIdFromDB($obj_id, $only_valid = true)
+    public function getLockObjectWithObjIdFromDB($obj_id)
     {
-        $query = "SELECT * FROM $this->lock_table WHERE obj_id = " . $this->db->quote($obj_id, 'integer');
+        $query = "SELECT * FROM $this->lock_table WHERE obj_id = "
+                    . $this->db->quote($obj_id, 'integer')
+                    . " AND expires > " . $this->db->quote(time(),'integer');
         $select_result = $this->db->query($query);
         $row = $this->db->fetchAssoc($select_result);
         
-        if($row && (!only_valid || $row['expires'] > time()))
+        if($row)
         {
             return ilWebDAVLockObject::createFromAssocArray($row);
         }
@@ -62,12 +66,13 @@ class ilWebDAVDBManager
     
     public function saveLockToDB(ilWebDAVLockObject $ilias_lock)
     {
+        ilLoggerFactory::getLogger('WebDAV')->info("Write lock with token (" . $ilias_lock->getToken() . ") to DB");
         $this->db->insert($this->lock_table, array(
             'token' => array('text', $ilias_lock->getToken()),
             'obj_id' => array('integer', $ilias_lock->getObjId()),
             'ilias_owner' => array('integer', $ilias_lock->getIliasOwner()), 
             'dav_owner' => array('text', $ilias_lock->getDavOwner()),
-            'expires' => array('timestamp', $ilias_lock->getExpires()),
+            'expires' => array('integer', $ilias_lock->getExpires()),
             'depth' => array('integer', $ilias_lock->getDepth()),
             'type' => array('text', $ilias_lock->getType()),
             'scope' => array('integer', $ilias_lock->getScope())
@@ -82,7 +87,8 @@ class ilWebDAVDBManager
      */
     public function removeLockWithTokenFromDB($token)
     {
-        return $this->db->manipulate("DELETE FROM $this->lock_table WHERE id = ".$ilDB->quote($token, "integer"));
+        ilLoggerFactory::getLogger('WebDAV')->info("Remove lock with token $token from DB!");
+        return $this->db->manipulate("DELETE FROM $this->lock_table WHERE token = ".$this->db->quote($token, "integer"));
     }
     
     /**
@@ -92,6 +98,6 @@ class ilWebDAVDBManager
      */
     public function purgeExpiredLocksFromDB()
     {
-        return $this->db->manipulate("DELETE FROM $this->lock_table WHERE expires < " . $this->db->quote(time(), 'timestamp'));
+        return $this->db->manipulate("DELETE FROM $this->lock_table WHERE expires < " . $this->db->quote(time(), 'integer'));
     }
 }

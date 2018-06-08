@@ -49,17 +49,7 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      * @return string|null
      */
     function put($data)
-    {
-        // Check if file has valid extension
-        include_once("./Services/Utilities/classes/class.ilFileUtils.php");
-        if(!(name == ilFileUtils::getValidFilename($name)))
-        {
-            // Throw forbidden if invalid exstension. As far as we know, it is sadly not
-            // possible to inform the user why this is forbidden.
-            ilLoggerFactory::getLogger('WebDAV')->warning(get_class($this). ' ' . $this->obj->getTitle() ." -> invalid File-Extension for file '$name'");
-            throw new Forbidden("Invalid file extension. But you won't see this anyway...");
-        }
-        
+    {        
         ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> replace file");
         if($this->access->checkAccess("write", "", $this->obj->getRefId()))
         {
@@ -182,7 +172,7 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
         
         $file_dest_path = $this->getPathToFile();
         ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> handleFileUpload to '$file_dest_path'");
-        
+
         // File upload
         $written_length = 0;
         if(is_resource($a_data))

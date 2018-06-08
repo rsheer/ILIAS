@@ -647,14 +647,14 @@ class ilInfoScreenGUI
 				// Show lock info
 				if ($ilUser->getId() != ANONYMOUS_USER_ID)
 				{
-					$locks =& $webdav_lock_backend->getLocksOnObjectObj($a_obj->getId());
-					if (count($locks) > 0)
+                    $lock = $webdav_lock_backend->getLocksOnObjectId($this->gui_object->object->getId());
+                    if ($lock != false)
 					{
-						$lockUser = new ilObjUser($locks[0]['ilias_owner']);
+						$lock_user = new ilObjUser($lock->getIliasOwner());
 						$this->addProperty($this->lng->txt("in_use_by"),
-							$lockUser->getPublicName()
+							$lock_user->getPublicName()
 							,
-							"./ilias.php?user=".$locks[0]['ilias_owner'].'&cmd=showUserProfile&cmdClass=ilpersonaldesktopgui&cmdNode=1&baseClass=ilPersonalDesktopGUI'
+							"./ilias.php?user=".$lock_user->getId().'&cmd=showUserProfile&cmdClass=ilpersonaldesktopgui&cmdNode=1&baseClass=ilPersonalDesktopGUI'
 						);
 					}
 				}

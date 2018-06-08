@@ -33,7 +33,7 @@ class ilClientNodeDAV implements Sabre\DAV\ICollection
     {
         global $DIC;
         
-        ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> constructor with client '$client_name'");
+        //ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> constructor with client '$client_name'");
         
         // TODO: Add real access checker!
         $this->access = new access_mocking();//$DIC->access();
@@ -46,7 +46,7 @@ class ilClientNodeDAV implements Sabre\DAV\ICollection
 
     public function getChildren()
     {
-        ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> get children -> return RepositoryRoot");
+        //ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> get children -> return RepositoryRoot");
         return array($this->getRepositoryRootPoint());
     }
 
@@ -62,15 +62,15 @@ class ilClientNodeDAV implements Sabre\DAV\ICollection
 
     public function getChild($name)
     {
-        ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> get child '$name'");
+        //ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> get child '$name'");
         if($name == $this->name_of_repository_root)
         {
-            ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> get child -> return RepositoryRoot");
+            //ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> get child -> return RepositoryRoot");
             return $this->getRepositoryRootPoint();
         }
         else 
         {
-            ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> get child -> return MountPointByReference");
+            //ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> get child -> return MountPointByReference");
             return $this->getMountPointByReference($name);
         }
         
@@ -109,7 +109,7 @@ class ilClientNodeDAV implements Sabre\DAV\ICollection
      */
     public function childExists($name)
     {
-        ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> check if '$name' exists");
+        //ilLoggerFactory::getLogger('WebDAV')->debug("ClientNodeDAV -> check if '$name' exists");
         if($name == $this->name_of_repository_root)
         {
             return true;

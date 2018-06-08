@@ -19,12 +19,13 @@ class ilMountPointDAV implements Sabre\DAV\ICollection
     {
         global $DIC;
         
-        ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> constructor");
+        //ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> constructor");
         
         $this->access = $DIC->access();
         $this->client_id = $DIC['ilias']->getClientId();
+        $this->user = $DIC->user();
         $this->username = $DIC->user()->getFullname();
-        ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> constructor -> current user: '$this->username'");
+        //ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> constructor -> current user: '$this->username'");
         
     }
     
@@ -36,13 +37,20 @@ class ilMountPointDAV implements Sabre\DAV\ICollection
     public function getChildren()
     {
         // TODO: Check for permissions
-        ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> getchildren -> return ClientNodeDAV for client '$this->client_id'");
-        return array(new ilClientNodeDAV($this->client_id));
+        //ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> getchildren -> return ClientNodeDAV for client '$this->client_id'");
+        if($this->user->getId() != ANONYMOUS_USER_ID)
+        {
+            return array(new ilClientNodeDAV($this->client_id));
+        }
+        else
+        {
+            throw new Forbidden('Only for logged in users');    
+        }
     }
 
     public function getChild($name)
     {
-        ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> get child '$name'");
+        //ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> get child '$name'");
         
         // TODO: Check for permissions AND correct client
         if($name == $this->client_id)
@@ -52,7 +60,7 @@ class ilMountPointDAV implements Sabre\DAV\ICollection
 
     public function childExists($name)
     {
-        ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> check if child '$name' exists");
+        //ilLoggerFactory::getLogger('WebDAV')->debug("MountPointDAV -> check if child '$name' exists");
         // TODO: Check for correct client
         if($name == $this->client_id)
             return true;
