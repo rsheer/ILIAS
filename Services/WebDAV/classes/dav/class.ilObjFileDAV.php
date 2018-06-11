@@ -171,8 +171,14 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
         global $DIC;
         
         $file_dest_path = $this->getPathToFile();
-        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> handleFileUpload to '$file_dest_path'");
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this)." -> handleFileUpload to '$file_dest_path'");
 
+        // If dir does not exist yet -> create it
+        if(!file_exists($file_dest_path))
+        {
+            ilUtil::makeDirParents($this->getPathToDirectory());
+        }
+        
         // File upload
         $written_length = 0;
         if(is_resource($a_data))
@@ -210,8 +216,10 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
         $this->obj->setFileSize($written_length);
         $this->obj->update();
         
+
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). 'Path and version after Update: V=' . $this->obj->getVersion() . ' path=' .$this->getPathToFile());
         // TODO: Fix this dirty stuff -> after file->update, the returned dir of getFile() changes from ./xy.file to ./001/xy.file
-        $this->obj->createDirectory();
+        //$this->obj->createDirectory();
         
         ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). ' ' . $this->obj->getTitle() ." -> fileupload successful!");
     }
@@ -226,16 +234,23 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
      */
     protected function fileUploadWithStream($a_data, string $file_dest_path)
     {
-        $write_stream = fopen($file_dest_path,'w');
-        
-        while (!feof($a_data)) {
-            if (false === ($written = fwrite($write_stream, fread($a_data, 4096)))) {
-                fclose($write_stream);
-                throw new Forbidden('Forbidden to write file');
+        try {
+            $write_stream = fopen($file_dest_path,'w');
+            
+            while (!feof($a_data)) {
+                if (false === ($written = fwrite($write_stream, fread($a_data, 4096)))) {
+                    fclose($write_stream);
+                    throw new Forbidden('Forbidden to write file');
+                }
+                $written_length += $written;
             }
-            $written_length += $written;
+            
+        } catch(Exception $e) {
+            ilLoggerFactory::getLogger('WebDAV')->error("Error on uploading {$this->obj->getTitle()} to path $file_dest_path with message: " . $e->getMessage());
+        } finally
+        {
+            fclose($write_stream);
         }
-        fclose($write_stream);
         
         return $written_length;
     }
@@ -260,8 +275,15 @@ class ilObjFileDAV extends ilObjectDAV implements Sabre\DAV\IFile
         return $written_length;
     }
     
+    protected function getPathToDirectory()
+    {
+        return $this->obj->getDirectory($this->obj->getVersion());
+    }
+    
     protected function getPathToFile()
     {
-        return str_replace("//", "/", $this->obj->getDirectory() .  $this->obj->getFileName());
+        $path = $this->getPathToDirectory() . "/" . $this->obj->getFileName();
+        ilLoggerFactory::getLogger('WebDAV')->debug(get_class($this). " Get path to file. Path = $path");
+        return $path;
     }
 }
